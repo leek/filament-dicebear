@@ -6,7 +6,7 @@
 
 A [DiceBear](https://www.dicebear.com/) avatar provider for [Filament](https://filamentphp.com/) panels. Supports all 31 avatar styles with caching, per-model customization, and self-hosted instances.
 
-![Filament DiceBear Banner](https://api.dicebear.com/9.x/adventurer/svg?seed=filament-dicebear&size=128)
+![Filament DiceBear Avatar Examples](art/avatar-examples.png)
 
 ## Installation
 
