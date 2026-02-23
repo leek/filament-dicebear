@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Leek\FilamentDiceBear;
 
-use Exception;
 use Filament\AvatarProviders\Contracts\AvatarProvider;
 use Filament\Facades\Filament;
 use Illuminate\Contracts\Auth\Authenticatable;
@@ -21,9 +20,10 @@ class DiceBearProvider implements AvatarProvider
         $plugin ??= $this->resolvePlugin();
         $style = $plugin->getStyle();
         $seed = $this->resolveSeed($record, $plugin);
+        $query = $plugin->buildQueryParams($seed);
 
         if ($plugin->getCache()) {
-            $cached = $this->getCached($plugin, $style, $seed);
+            $cached = $this->getCached($plugin, $style, $query);
 
             if ($cached !== null) {
                 return $cached;
@@ -31,19 +31,18 @@ class DiceBearProvider implements AvatarProvider
         }
 
         $url = $plugin->buildApiUrl($style);
-        $query = $plugin->buildQueryParams($seed);
 
         try {
-            $response = Http::get($url, $query);
+            $response = Http::timeout(5)->retry(2, 100)->get($url, $query);
 
             if ($response->successful()) {
                 if ($plugin->getCache()) {
-                    return $this->cacheAndReturn($plugin, $style, $seed, $response->body());
+                    return $this->cacheAndReturn($plugin, $style, $query, $response->body());
                 }
 
                 return $this->toDataUri($response->body());
             }
-        } catch (Exception) {
+        } catch (\Throwable) {
             // Silent fallback to direct URL
         }
 
@@ -54,7 +53,7 @@ class DiceBearProvider implements AvatarProvider
     {
         try {
             return DiceBearPlugin::get();
-        } catch (Exception) {
+        } catch (\Throwable) {
             return DiceBearPlugin::make();
         }
     }
@@ -73,38 +72,57 @@ class DiceBearProvider implements AvatarProvider
 
         try {
             $name = Filament::getNameForDefaultAvatar($record);
-        } catch (Exception) {
+        } catch (\Throwable) {
             $name = $record->name ?? $record->email ?? null;
         }
 
         return Str::slug($name ?: 'default');
     }
 
-    protected function getCached(DiceBearPlugin $plugin, DiceBearStyle $style, string $seed): ?string
+    /** @param array<string, mixed> $query */
+    protected function getCached(DiceBearPlugin $plugin, DiceBearStyle $style, array $query): ?string
     {
-        $filename = $this->cacheFilename($plugin, $style, $seed);
+        $filename = $this->cacheFilename($plugin, $style, $query);
 
-        if (Storage::disk($plugin->getDisk())->exists($filename)) {
-            return Storage::disk($plugin->getDisk())->url($filename);
+        try {
+            if (Storage::disk($plugin->getDisk())->exists($filename)) {
+                return Storage::disk($plugin->getDisk())->url($filename);
+            }
+        } catch (\Throwable) {
+            // Storage failure — skip cache
         }
 
         return null;
     }
 
-    protected function cacheAndReturn(DiceBearPlugin $plugin, DiceBearStyle $style, string $seed, string $svg): string
+    /** @param array<string, mixed> $query */
+    protected function cacheAndReturn(DiceBearPlugin $plugin, DiceBearStyle $style, array $query, string $svg): string
     {
-        $filename = $this->cacheFilename($plugin, $style, $seed);
+        $filename = $this->cacheFilename($plugin, $style, $query);
 
-        Storage::disk($plugin->getDisk())->put($filename, $svg, [
-            'ContentType' => 'image/svg+xml',
-        ]);
+        try {
+            Storage::disk($plugin->getDisk())->put($filename, $svg, [
+                'ContentType' => 'image/svg+xml',
+            ]);
 
-        return Storage::disk($plugin->getDisk())->url($filename);
+            return Storage::disk($plugin->getDisk())->url($filename);
+        } catch (\Throwable) {
+            return $this->toDataUri($svg);
+        }
     }
 
-    protected function cacheFilename(DiceBearPlugin $plugin, DiceBearStyle $style, string $seed): string
+    /** @param array<string, mixed> $query */
+    protected function cacheFilename(DiceBearPlugin $plugin, DiceBearStyle $style, array $query): string
     {
-        return rtrim($plugin->getCachePath(), '/').'/'.$style->value.'/'.$seed.'.svg';
+        $seed = Str::slug((string) ($query['seed'] ?? 'default')) ?: 'default';
+
+        $params = $query;
+        unset($params['seed']);
+        ksort($params);
+
+        $name = $params !== [] ? $seed.'-'.substr(md5(serialize($params)), 0, 8) : $seed;
+
+        return rtrim($plugin->getCachePath(), '/').'/'.$style->value.'/'.$name.'.svg';
     }
 
     protected function toDataUri(string $svg): string

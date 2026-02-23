@@ -36,9 +36,18 @@ trait HasDiceBearAvatar
      */
     public function getDiceBearAvatarUrl(): string
     {
-        $plugin = DiceBearPlugin::make()
-            ->style($this->dicebearAvatarStyle())
-            ->options($this->dicebearAvatarOptions());
+        try {
+            $plugin = clone DiceBearPlugin::get();
+        } catch (\Throwable) {
+            $plugin = DiceBearPlugin::make();
+        }
+
+        $plugin->style($this->dicebearAvatarStyle());
+
+        $options = $this->dicebearAvatarOptions();
+        if ($options !== []) {
+            $plugin->options($options);
+        }
 
         return app(DiceBearProvider::class)->get($this, $plugin);
     }

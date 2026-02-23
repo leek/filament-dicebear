@@ -86,14 +86,14 @@ class DiceBearPlugin implements Plugin
         }
 
         if (is_string($this->style)) {
-            return DiceBearStyle::from($this->style);
+            return DiceBearStyle::tryFrom($this->style) ?? DiceBearStyle::Initials;
         }
 
         $configured = config('filament-dicebear.style', 'initials');
 
         return $configured instanceof DiceBearStyle
             ? $configured
-            : DiceBearStyle::from($configured);
+            : (DiceBearStyle::tryFrom($configured) ?? DiceBearStyle::Initials);
     }
 
     // ── API Version ──────────────────────────────────────────────────────
