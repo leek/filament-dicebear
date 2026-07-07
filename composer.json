@@ -33,6 +33,9 @@
         "pestphp/pest": "^2.0 || ^3.0 || ^4.0",
         "pestphp/pest-plugin-laravel": "^2.0 || ^3.0 || ^4.0"
     },
+    "suggest": {
+        "leek/filament-ui-plus": "Enhanced Filament UI components to pair with generated avatars."
+    },
     "autoload": {
         "psr-4": {
             "Leek\\FilamentDiceBear\\": "src/"
