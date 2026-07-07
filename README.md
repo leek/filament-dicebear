@@ -272,6 +272,20 @@ return [
 composer test
 ```
 
+## More Filament plugins by Leek
+
+**Premium**
+
+- [**Filament UI Plus**](https://filamentphp.com/plugins/leek-ui-plus) — Enhanced UI components: dual sub-navigation, animated sidebar, horizontal-scroll tables, loading bar, and more.
+- [**Filament Workflow Engine**](https://filamentphp.com/plugins/leek-workflow-engine) — Automated workflows with a visual builder, triggers/actions, async execution, and audit logging.
+- [**Filament Decision Tables**](https://filamentphp.com/plugins/leek-decision-tables) — Business rules engine with spreadsheet-style decision tables.
+
+**Free & open source**
+
+- [**Filament Right Click**](https://github.com/leek/filament-right-click) — Right-click context menus for table rows.
+- [**Filament Header Filters**](https://github.com/leek/filament-header-filters) — Inline filters attached to table column headers.
+- [**Filament Subtenant Scope**](https://github.com/leek/filament-subtenant-scope) — Second-level tenancy scoping via a topnav dropdown.
+
 ## License
 
 The MIT License (MIT). Please see [License File](LICENSE.md) for more information.
