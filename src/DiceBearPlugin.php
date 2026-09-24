@@ -586,16 +586,27 @@ class DiceBearPlugin implements Plugin
      */
     public function buildOptions(string $seed, array $extraOptions = []): array
     {
-        $options = array_merge(['seed' => $seed], $this->getCoreOptions());
+        $options = array_merge(
+            ['seed' => $seed],
+            $this->getCoreOptions(),
+            static::translateOptions($this->getOptions()),
+            static::translateOptions($extraOptions),
+        );
 
+        // Applied after every source is merged so a `tags` filter from options()
+        // or per-model options can't drop the animation. An explicit
+        // `animationVariant` option is more specific and still wins.
         if ($this->getAnimationSpeed() !== null) {
-            $options['animationVariant'] = $this->getAnimationSpeed()->value;
-        } elseif ($this->isAnimated()) {
-            $tags = (array) ($options['tags'] ?? []);
+            $options['animationVariant'] ??= $this->getAnimationSpeed()->value;
+        } elseif ($this->isAnimated() && ! isset($options['animationVariant'])) {
+            $tags = is_string($options['tags'] ?? null)
+                ? array_map('trim', explode(',', $options['tags']))
+                : (array) ($options['tags'] ?? []);
+
             $options['tags'] = array_values(array_unique([...$tags, 'animation']));
         }
 
-        return array_merge($options, static::translateOptions($this->getOptions()), static::translateOptions($extraOptions));
+        return $options;
     }
 
     /**

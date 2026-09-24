@@ -151,6 +151,20 @@ it('enables animation via the animation tag', function () {
         ->toBe(['!mood:negative', 'animation']);
 });
 
+it('keeps the animation tag when style options set tags', function () {
+    $plugin = DiceBearPlugin::make()->animated()->options(['tags' => ['!mood:negative']]);
+
+    expect($plugin->buildOptions('s')['tags'])->toBe(['!mood:negative', 'animation']);
+    expect($plugin->buildOptions('s', ['tags' => 'hairLength:long,!eyewear'])['tags'])
+        ->toBe(['hairLength:long', '!eyewear', 'animation']);
+});
+
+it('lets an explicit animationVariant option win over animationSpeed', function () {
+    $plugin = DiceBearPlugin::make()->animationSpeed('slow')->options(['animationVariant' => 'fast']);
+
+    expect($plugin->buildOptions('s')['animationVariant'])->toBe('fast');
+});
+
 it('pins animation speed via animationVariant', function () {
     expect(DiceBearPlugin::make()->animated()->animationSpeed(AnimationSpeed::Slow)->buildOptions('s'))
         ->toBe(['seed' => 's', 'animationVariant' => 'slow']);

@@ -183,9 +183,10 @@ it('fetches from the v10 HTTP API with serialized options', function () {
 
     Http::assertSent(function ($request) {
         parse_str(parse_url($request->url(), PHP_URL_QUERY), $query);
+        ksort($query);
 
         return str_starts_with($request->url(), 'https://api.dicebear.com/10.x/bottts-neutral/svg?')
-            && $query === ['seed' => '5', 'tags' => 'animation', 'eyesVariant' => 'bulging,happy'];
+            && $query === ['eyesVariant' => 'bulging,happy', 'seed' => '5', 'tags' => 'animation'];
     });
 
     expect(Storage::disk('public')->get(str_replace('/storage/', '', $url)))->toBe('<svg>remote</svg>');
