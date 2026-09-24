@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Leek\FilamentDiceBear;
 
+use Leek\FilamentDiceBear\Support\StyleRegistry;
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
 
@@ -16,5 +17,10 @@ class DiceBearServiceProvider extends PackageServiceProvider
         $package
             ->name(static::$name)
             ->hasConfigFile();
+    }
+
+    public function packageRegistered(): void
+    {
+        $this->app->singleton(StyleRegistry::class);
     }
 }

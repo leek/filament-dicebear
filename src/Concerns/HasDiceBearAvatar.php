@@ -53,15 +53,17 @@ trait HasDiceBearAvatar
     }
 
     /**
-     * The DiceBear style to use for this model's avatars.
+     * The DiceBear style to use for this model's avatars. Return a string for
+     * a custom style registered with DiceBearPlugin::customStyle().
      */
-    public function dicebearAvatarStyle(): DiceBearStyle
+    public function dicebearAvatarStyle(): DiceBearStyle|string
     {
         return DiceBearStyle::Initials;
     }
 
     /**
-     * Style-specific options for this model's avatars.
+     * Style-specific options for this model's avatars, using v10 option
+     * names (e.g. `eyesVariant`, `skinColor`, `tags`).
      *
      * @return array<string, mixed>
      */
