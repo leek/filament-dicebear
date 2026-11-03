@@ -129,4 +129,21 @@ return [
         'path' => 'avatars/dicebear',
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Definition Cache
+    |--------------------------------------------------------------------------
+    |
+    | Validating a style definition takes 150 ms or more for the larger
+    | styles. The validated definition is kept in this Laravel cache store
+    | (null = the default store), so a PHP-FPM request does not repeat the
+    | validation. The key changes with the file's contents and the core version.
+    |
+    */
+
+    'definition_cache' => [
+        'enabled' => true,
+        'store' => null,
+    ],
+
 ];

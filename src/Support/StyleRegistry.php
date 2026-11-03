@@ -7,12 +7,15 @@ namespace Leek\FilamentDiceBear\Support;
 use Composer\InstalledVersions;
 use DiceBear\OptionsDescriptor;
 use DiceBear\Style;
+use Illuminate\Support\Facades\Cache;
 use InvalidArgumentException;
 
 /**
  * Loads DiceBear style definitions on demand and memoizes them for the
  * lifetime of the process. Parsing a definition runs JSON Schema validation
- * (~25 ms per style), so each one is loaded at most once.
+ * (150 ms or more for the larger styles), and under PHP-FPM the process memo
+ * lasts one request, so a validated definition is also kept in the Laravel
+ * cache (`definition_cache`), keyed by the file's contents and the core version.
  */
 class StyleRegistry
 {
@@ -132,6 +135,27 @@ class StyleRegistry
             throw new InvalidArgumentException("DiceBear style definition not found at [{$path}].");
         }
 
-        return Style::fromJson($json);
+        if (! config('filament-dicebear.definition_cache.enabled', true)) {
+            return Style::fromJson($json);
+        }
+
+        $cache = Cache::store(config('filament-dicebear.definition_cache.store'));
+        $key = 'filament-dicebear:style:'.hash('xxh128', InstalledVersions::getPrettyVersion('dicebear/core')."\0".$json);
+
+        $cached = $cache->get($key);
+
+        if (is_string($cached)) {
+            $style = @unserialize($cached, ['allowed_classes' => [Style::class]]);
+
+            if ($style instanceof Style) {
+                return $style;
+            }
+        }
+
+        $style = Style::fromJson($json);
+
+        $cache->forever($key, serialize($style));
+
+        return $style;
     }
 }

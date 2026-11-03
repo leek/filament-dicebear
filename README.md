@@ -207,6 +207,15 @@ To clear cached avatars:
 Storage::disk('public')->deleteDirectory('avatars/dicebear');
 ```
 
+Validating a style definition takes 150 ms or more for the larger styles. The validated definition is also kept in your Laravel cache, so a PHP-FPM request renders without repeating the validation. The key changes with the definition file and the DiceBear core version. Pick a store or turn it off in `config/filament-dicebear.php`:
+
+```php
+'definition_cache' => [
+    'enabled' => true,
+    'store' => null, // null = the default cache store
+],
+```
+
 ## Per-Model Customization
 
 Use the `HasDiceBearAvatar` trait on any model implementing `HasAvatar` to customize avatars per model:
